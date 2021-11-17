@@ -1,16 +1,14 @@
-FROM node:9.6.1 as builder
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
-ENV PATH /usr/src/app/node_modules/.bin:$PATH
-COPY package.json /usr/src/app/package.json
-RUN npm install --silent
-RUN npm install react-scripts@1.1.1 -g --silent
-COPY . /usr/src/app
+FROM node:alpine as builder
+WORKDIR '/app'
+#copying in root directory
+COPY package.json .
+# installing the dependencies
+RUN npm install
+# copying files from local machine to container
+COPY . .
 RUN npm run build
 
-
-# production environment
-FROM nginx:1.13.9-alpine
-COPY --from=builder /usr/src/app/build /usr/share/nginx/html
+#This will create a new container
+FROM nginx
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+COPY --from=builder /app/build /usr/share/nginx/html
